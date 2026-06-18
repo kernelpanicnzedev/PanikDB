@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
   ScrollView, Alert, Linking,
@@ -10,9 +10,11 @@ import { colors } from '../constants/colors';
 export function SettingsScreen() {
   const [apiKey, setApiKey] = useState('');
   const [saved, setSaved] = useState(false);
+  const savedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     getApiKey().then(key => { if (key) setApiKey(key); });
+    return () => { if (savedTimerRef.current) clearTimeout(savedTimerRef.current); };
   }, []);
 
   async function handleSaveKey() {
@@ -22,7 +24,8 @@ export function SettingsScreen() {
     }
     await saveApiKey(apiKey.trim());
     setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
+    if (savedTimerRef.current) clearTimeout(savedTimerRef.current);
+    savedTimerRef.current = setTimeout(() => setSaved(false), 2000);
   }
 
   function handleClearHistory() {

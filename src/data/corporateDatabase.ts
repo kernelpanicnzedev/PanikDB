@@ -474,3 +474,13 @@ export function lookupCorporateRecord(brandOrCompany: string): CorporateRecord |
   }
   return null;
 }
+
+export function lookupCompanyKey(brandOrCompany: string): string | undefined {
+  const key = brandOrCompany.toLowerCase().trim();
+  if (!key) return undefined;
+  if (BRAND_TO_COMPANY[key]) return BRAND_TO_COMPANY[key];
+  for (const [dbKey, companyKey] of Object.entries(BRAND_TO_COMPANY)) {
+    if (key.includes(dbKey) || dbKey.includes(key)) return companyKey;
+  }
+  return undefined;
+}

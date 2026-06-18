@@ -107,6 +107,27 @@ export async function analyzeProduct(product: RawProduct, apiKey: string): Promi
     throw new Error('No JSON found in Claude response');
   }
 
-  const analysis: AIAnalysis = JSON.parse(text.slice(jsonStart, jsonEnd + 1));
+  const raw = JSON.parse(text.slice(jsonStart, jsonEnd + 1));
+  const ci = raw.corporateIntel ?? {};
+  const analysis: AIAnalysis = {
+    ingredientsDecoded: Array.isArray(raw.ingredientsDecoded) ? raw.ingredientsDecoded : [],
+    healthRisks: Array.isArray(raw.healthRisks) ? raw.healthRisks : [],
+    nutritionFlags: Array.isArray(raw.nutritionFlags) ? raw.nutritionFlags : [],
+    nutritionSummary: raw.nutritionSummary ?? '',
+    corporateIntel: {
+      parentCompany: ci.parentCompany ?? 'Unknown',
+      subsidiaries: Array.isArray(ci.subsidiaries) ? ci.subsidiaries : [],
+      lawsuits: Array.isArray(ci.lawsuits) ? ci.lawsuits : [],
+      recalls: Array.isArray(ci.recalls) ? ci.recalls : [],
+      environmentalViolations: Array.isArray(ci.environmentalViolations) ? ci.environmentalViolations : [],
+      laborViolations: Array.isArray(ci.laborViolations) ? ci.laborViolations : [],
+      controversies: Array.isArray(ci.controversies) ? ci.controversies : [],
+      ethicsRating: ci.ethicsRating ?? 'mixed',
+      ethicsExplanation: ci.ethicsExplanation ?? '',
+    },
+    overallRating: typeof raw.overallRating === 'number' ? raw.overallRating : 5,
+    tldr: raw.tldr ?? '',
+    misleadingClaims: Array.isArray(raw.misleadingClaims) ? raw.misleadingClaims : [],
+  };
   return analysis;
 }

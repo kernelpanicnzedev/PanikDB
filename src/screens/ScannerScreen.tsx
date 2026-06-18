@@ -40,8 +40,10 @@ export function ScannerScreen() {
 
   useFocusEffect(
     React.useCallback(() => {
-      getApiKey().then(key => setHasApiKey(!!key));
-      getHistory().then(h => setRecentScans(h.slice(0, 3)));
+      Promise.all([getApiKey(), getHistory()]).then(([key, h]) => {
+        setHasApiKey(!!key);
+        setRecentScans(h.slice(0, 3));
+      });
     }, [])
   );
 

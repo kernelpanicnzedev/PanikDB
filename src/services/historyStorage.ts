@@ -14,7 +14,12 @@ export async function saveToHistory(product: ScannedProduct): Promise<void> {
 
 export async function getHistory(): Promise<ScannedProduct[]> {
   const data = await AsyncStorage.getItem(HISTORY_KEY);
-  return data ? JSON.parse(data) : [];
+  if (!data) return [];
+  try {
+    return JSON.parse(data);
+  } catch {
+    return [];
+  }
 }
 
 export async function getFromHistory(barcode: string): Promise<ScannedProduct | null> {

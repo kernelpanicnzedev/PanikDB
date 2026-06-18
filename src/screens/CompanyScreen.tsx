@@ -59,6 +59,8 @@ export function CompanyScreen() {
 
   const ethicsColor = ethicsColors[record.ethicsRating] ?? colors.textMuted;
   const totalFines = record.totalFines;
+  const finesValue = /^[$€£¥CHF]/.test(totalFines) ? totalFines.split(' ')[0] : '—';
+  const finesSub = finesValue === '—' ? totalFines.slice(0, 22) + (totalFines.length > 22 ? '…' : '') : 'Documented';
   const violationCount = record.violations.length;
 
   return (
@@ -94,8 +96,8 @@ export function CompanyScreen() {
           )}
           <View style={[styles.statCard, styles.statCardRed]}>
             <Text style={styles.statLabel}>TOTAL FINES</Text>
-            <Text style={[styles.statValue, { color: colors.primary }]}>{totalFines.split(' ')[0]}</Text>
-            <Text style={styles.statSub}>Documented</Text>
+            <Text style={[styles.statValue, { color: colors.primary }]}>{finesValue}</Text>
+            <Text style={styles.statSub}>{finesSub}</Text>
           </View>
           <View style={[styles.statCard, styles.statCardRed]}>
             <Text style={styles.statLabel}>VIOLATIONS</Text>

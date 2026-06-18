@@ -11,7 +11,7 @@ import { RootStackParamList, ScannedProduct, AIAnalysis } from '../types';
 import { fetchProductByBarcode } from '../services/openFoodFacts';
 import { analyzeProduct } from '../services/claudeAnalysis';
 import { saveToHistory, getFromHistory, getApiKey } from '../services/historyStorage';
-import { BRAND_TO_COMPANY } from '../data/corporateDatabase';
+import { lookupCompanyKey } from '../data/corporateDatabase';
 import { colors } from '../constants/colors';
 import { RatingCircle } from '../components/RatingCircle';
 import { RiskBadge } from '../components/RiskBadge';
@@ -69,27 +69,26 @@ export function ProductScreen() {
         return;
       }
 
-      setLoadStep(1);
+      if (isMounted.current) setLoadStep(1);
       const rawProduct = await fetchProductByBarcode(barcode);
       if (!rawProduct) {
-        setError(`Product not found in OpenFoodFacts database.\nBarcode: ${barcode}`);
+        if (isMounted.current) setError(`Product not found in OpenFoodFacts database.\nBarcode: ${barcode}`);
         return;
       }
 
       const scanned: ScannedProduct = { ...rawProduct, scannedAt: new Date().toISOString() };
-      if (isMounted.current) setProduct(scanned);
-      setLoadStep(2);
+      if (isMounted.current) { setProduct(scanned); setLoadStep(2); }
 
       const apiKey = await getApiKey();
       if (!apiKey) {
         await saveToHistory(scanned);
-        if (isMounted.current) { setLoadStep(5); }
+        if (isMounted.current) setLoadStep(5);
         return;
       }
 
-      setLoadStep(3);
+      if (isMounted.current) setLoadStep(3);
       const ai = await analyzeProduct(rawProduct, apiKey);
-      setLoadStep(4);
+      if (isMounted.current) setLoadStep(4);
 
       const full: ScannedProduct = { ...scanned, analysis: ai };
       await saveToHistory(full);
@@ -288,11 +287,10 @@ export function ProductScreen() {
   function renderCorporate() {
     if (!analysis) return noAiMessage();
     const corp = analysis.corporateIntel;
-    const ethicsColor = ethicsColors[corp.ethicsRating];
+    const ethicsColor = ethicsColors[corp.ethicsRating as keyof typeof ethicsColors] ?? colors.textMuted;
 
-    // Try to find the company in local DB
-    const companyKey = BRAND_TO_COMPANY[corp.parentCompany?.toLowerCase() ?? '']
-      || BRAND_TO_COMPANY[product?.brand?.toLowerCase() ?? ''];
+    // Look up by actual product brand (more reliable than Claude's formal company name)
+    const companyKey = lookupCompanyKey(product?.brand ?? '') ?? lookupCompanyKey(corp.parentCompany ?? '');
 
     return (
       <View style={styles.section}>

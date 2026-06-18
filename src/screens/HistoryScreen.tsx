@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import {
   View, Text, FlatList, TouchableOpacity, StyleSheet, TextInput,
 } from 'react-native';
@@ -24,12 +24,15 @@ export function HistoryScreen() {
     }, [])
   );
 
-  const filtered = query.trim()
-    ? history.filter(p =>
-        p.name.toLowerCase().includes(query.toLowerCase()) ||
-        p.brand.toLowerCase().includes(query.toLowerCase())
-      )
-    : history;
+  const filtered = useMemo(() =>
+    query.trim()
+      ? history.filter(p =>
+          p.name.toLowerCase().includes(query.toLowerCase()) ||
+          p.brand.toLowerCase().includes(query.toLowerCase())
+        )
+      : history,
+    [history, query]
+  );
 
   function renderItem({ item }: { item: ScannedProduct }) {
     const date = new Date(item.scannedAt).toLocaleDateString('en-US', {
